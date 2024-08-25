@@ -1,16 +1,20 @@
-import socket
-from QUIC import QUICConnection
+import asyncio
+from quic import create_quic_client
+from aioquic.quic.configuration import QuicConfiguration
 
 
-def receive_file(host='localhost', port=12345):
-    client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    client_socket.connect((host, port))
-    quic_conn = QUICConnection(client_socket)
-    file_data = quic_conn.receive_data()
-    # Print first 100 bytes for brevity
-    print(f'Received file data: {file_data[:100]}...')
-    quic_conn.close()
+async def main():
+    config = QuicConfiguration(is_client=True)
+    config.verify_mode = False  # This disables certificate verification for simplicity
 
+    client = await create_quic_client('localhost', 4433, config)
+
+    # Create a flow with a file
+    flow_id = 1
+    client.create_flow(flow_id, 'file_to_transfer.txt')
+
+    # Send the file
+    await client.send_file(flow_id)
 
 if __name__ == '__main__':
-    receive_file()
+    asyncio.run(main())
