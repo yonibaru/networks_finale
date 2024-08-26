@@ -12,6 +12,7 @@ def client_main(host, port):
 
 
 if __name__ == "__main__":
-    host = '127.0.0.1'
-    port = 12345
+    host = 'localhost'
+    port = 9999
+    files = ["file1.txt","file3.txt"] # Files the user would like to download from the server
     client_main(host, port)
