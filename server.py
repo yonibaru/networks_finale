@@ -1,16 +1,24 @@
-import asyncio
-from quic import create_quic_server
-from aioquic.quic.configuration import QuicConfiguration
+import socket
+import threading
+from quic import handle_server
 
 
-async def main():
-    config = QuicConfiguration(is_client=False)
-    config.load_cert_chain(certfile='cert.pem', keyfile='key.pem')
+def server_main(host, port, file_to_send):
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind((host, port))
+    server_socket.listen(5)
 
-    server = await create_quic_server('localhost', 4433, config)
+    print(f"Server listening on {host}:{port}")
 
-    print("Server running on localhost:4433")
-    await server.wait_closed()
+    while True:
+        conn, addr = server_socket.accept()
+        print(f"Connection from {addr}")
+        threading.Thread(target=handle_server,
+                         args=(conn, file_to_send)).start()
 
-if __name__ == '__main__':
-    asyncio.run(main())
+
+if __name__ == "__main__":
+    host = '127.0.0.1'
+    port = 12345
+    file_to_send = 'file_to_send.txt'
+    server_main(host, port, file_to_send)
