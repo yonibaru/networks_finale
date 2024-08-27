@@ -1,30 +1,43 @@
 import socket
-import random
 
 BUFFER_SIZE = 4096 # Size of the buffer for receiving data
-FILE_END_MARKER = b"<END_OF_FILE>"  # Marker to signify the end of a file
 
-def request_files(connection, files):
-    try:
-        for file in files:
-            get_file(file,connection)
-        print("Successfully received all files.")
-    finally:
-        connection.close()
-        print("Connection with the server has closed.")
+def request_all_files(connection):
+    # Client continuously requests the next file in queue
+    while True:
+        if not request_file(connection):
+            print("No more files to receive. Closing connection.")
+            break
 
+def request_file(connection):
+    # First receive the header length (4 bytes)
+    header_length_data = connection.recv(4)
+    
+    # Check if there is no more data coming from the server
+    if not header_length_data:
+        return False  # No more files to receive
 
-def get_file(filepath, connection):
-    with open(filepath, 'wb') as f:
-        while True:
-            data = connection.recv(BUFFER_SIZE)
-            if FILE_END_MARKER in data:
-                # Split data at the marker to save the file and ignore the marker
-                file_data, remaining_data = data.split(FILE_END_MARKER,1)
-                f.write(file_data)
+    # First receive the header length (4 bytes)
+    header_length = int.from_bytes(connection.recv(4), 'big')
+    
+    # Now receive the actual header based on its length
+    header = connection.recv(header_length).decode('utf-8')
+    file_name, file_size_str = header.split(':')
+    file_size = int(file_size_str)
+    # Prepare to receive the file content
+    with open("new_" + file_name, 'wb') as f:
+        bytes_received = 0
+    
+        while bytes_received < file_size:
+            frame = connection.recv(BUFFER_SIZE)
+            if not frame:
                 break
-            else:
-                f.write(data)
+                # await reconnect else fail sending failed: not all data has been received
+            f.write(frame)
+            bytes_received += len(frame)
+    
+    print(f"Received file: {file_name}, size: {file_size} bytes")
+    return True
 
 def connect_to_server(host, port):
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,7 +49,5 @@ def connect_to_server(host, port):
 if __name__ == "__main__":
     host = 'localhost'
     port = 9999
-    files = ["received_file1.txt", "received_file2.txt", "received_file3.txt"]  # Names for the files to save received data
-    # Files the user would like to download from the server
     connection = connect_to_server(host, port)
-    request_files(connection,files)
+    request_all_files(connection)
