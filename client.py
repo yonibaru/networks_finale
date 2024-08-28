@@ -1,12 +1,16 @@
 import socket
+import time
 
 BUFFER_SIZE = 256
+packets_sent = 0
+bytes_sent = 0
+total_packets_sent_time = 0
 
 '''
 Save the file data to the file. The file data is saved to the file with the name "new_" + file_name.
 The data is saved in a hashmap with the file name as the key and the data ID as the value.
 
-example:
+Example:
 files_dict = {
     "file1.txt": {
         1: "data1",
@@ -37,6 +41,15 @@ def request_all_files(connection):
             with open("new_" + file_name, 'wb') as f:
                 for data_id in sorted(files_dict[file_name]):
                     f.write(files_dict[file_name][data_id].encode('utf-8'))
+        print("--- File Transfer Complete ---")
+        print(f"Bytes Sent: {bytes_sent}")
+        print(f"Packets Sent: {packets_sent}")
+        print(
+            f"Average bytes per second: {bytes_sent / total_packets_sent_time}")
+        print(
+            f"Average packets per second: {packets_sent / total_packets_sent_time}")
+        print("------------------------------")
+        break
 
 
 '''
@@ -46,8 +59,14 @@ The file data is received in the format "file_name:data_id:packet_size:data".
 
 
 def request_file(connection, files_dict):
+    global packets_sent, bytes_sent, total_packets_sent_time
+
+    # Start time to measure the time taken to receive all files
+    start_time = time.time()
+
+    # Receive the file data from the server
     frame = connection.recv(BUFFER_SIZE).decode(
-        'utf-8')  # Receive the file data from the server
+        'utf-8')
 
     # If there is no data, the client has received all the data
     if not frame:
@@ -62,6 +81,14 @@ def request_file(connection, files_dict):
     # If the data is less than the packet size, adjust the packet size
     if len(data) < packet_size:
         data += connection.recv(packet_size - len(data)).decode('utf-8')
+
+    end_time = time.time()
+    duration = end_time - start_time
+    packets_sent += 1
+    bytes_sent += len(data)
+    total_packets_sent_time += duration
+
+    print(f"Time taken to receive packet: {duration}")
 
     # Save the file data to the files_dict
     if file_name not in files_dict:
