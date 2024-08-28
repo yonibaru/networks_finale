@@ -20,6 +20,8 @@ def send_file(filepath, client_socket):
         counter = 1
         while True:
             original_data = f.read(packet_size).decode('utf-8')
+            print(
+                f"Sending {filepath}, data_id: {counter}, packet_size: {packet_size}")
             injected_data = inject_file_data(
                 filepath, original_data, counter, packet_size)
             if not injected_data:

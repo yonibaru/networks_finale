@@ -24,31 +24,20 @@ def request_file(connection, files_dict):
     if not frame:
         return False
 
-    print(f"👽Received frame👽: {frame}")
     file_name, data_id, packet_size, data = frame.split(':', 3)
     data_id = int(data_id)
     packet_size = int(packet_size)
+    print(
+        f"🍕🍕🍕Received file: {file_name}, data_id: {data_id}, packet_size: {packet_size}")
     if len(data) < packet_size:
         data += connection.recv(packet_size - len(data)).decode('utf-8')
-    print(f"Received file: {file_name}, data_id: {data_id}")
+    print(f"👽Received frame👽: {frame}")
 
     if file_name not in files_dict:
         files_dict[file_name] = {data_id: data}
     else:
         files_dict[file_name][data_id] = data
 
-    # ! Notice a file sent as "file1.txt" is saved as "new_file1.txt" just so files won't override eachother since they are in the same directory.
-    # with open("new_" + file_name, 'wb') as f:
-    #     bytes_received = 0
-    #     while bytes_received < file_size:
-    #         remaining = file_size - bytes_received
-    #         frame = connection.recv(min(BUFFER_SIZE, remaining))
-    #         if not frame:
-    #             break
-    #         f.write(frame)
-    #         bytes_received += len(frame)
-
-    # print(f"Successfully received file: {file_name}, size: {file_size} bytes")
     return True
 
 
