@@ -3,27 +3,32 @@ import threading
 import random
 import os
 
-BUFFER_SIZE = 64  # Size of the buffer for receiving data
-HEADER_SIZE = 256 
+BUFFER_SIZE = 4096 
+HEADER_SIZE = 256  # header is a fixed 256 bytes, accommodating the file name and file size
+
+socket_lock = threading.Lock() # Returns a lock object that can be used to synchronize the threads.
 
 def create_header(filepath):
     file_name = os.path.basename(filepath)
     file_size = os.path.getsize(filepath)
     header = f"{file_name}:{file_size}".encode('utf-8')
-    header += b' ' * (256 - len(header))  # Padding to ensure header is 256 bytes
+    header += b' ' * (256 - len(header))  # Padding to ensure header is exactly 256 bytes
     return header
 
 def send_file(filepath, client_socket):
     with open(filepath, 'rb') as f:
         header = create_header(filepath)
         print(f"header={header}")
-        client_socket.sendall(header)  # At first, send the header 
-        packet_size = random.randint(1000, 2000)
-        while True:
-            data = f.read(packet_size)
-            if not data:
-                break
-            client_socket.sendall(data)
+        
+        # Multiple threads cannot simultaneously run this code, allowing for some synchornization.
+        with socket_lock:
+            client_socket.sendall(header)  # At first, send the header 
+            packet_size = random.randint(1000, 2000)
+            while True:
+                data = f.read(packet_size)
+                if not data:
+                    break
+                client_socket.sendall(data)
     print(f"Finished sending {filepath}")
     
 
@@ -39,10 +44,10 @@ def serve_client(client_socket, files_to_send):
     # Start all threads
     for stream in streams:
         stream.start()
-        stream.join()
 
     # Wait for all threads to finish
-    # for stream in streams:
+    for stream in streams:
+        stream.join()
 
     print(f"All files sent to client {client_socket.getpeername()}")
     client_socket.close()  # Close connection after sending all files
@@ -59,8 +64,6 @@ def start_server(host, port, files_to_send):
             client_socket, addr = server_socket.accept()
             print(f"Connection from {addr}")
             serve_client(client_socket,files_to_send)
-            # cl4ient_thread = threading.Thread(target=serve_client, args=(client_socket, files_to_send))
-            # client_thread.start()
     except KeyboardInterrupt:
         print("Server is shutting down.")
     finally:
@@ -68,6 +71,6 @@ def start_server(host, port, files_to_send):
 
 if __name__ == "__main__":
     host = 'localhost'
-    port = 9996
-    files = ["file1.txt", "file2.txt", "file3.txt"]  # Assume these are the files available in the server directory
+    port = 9994
+    files = ["file1.txt", "file2.txt", "file3.txt","file4.txt","file5.txt"]  # Assume these are the files available in the server directory
     start_server(host, port, files)
