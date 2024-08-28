@@ -1,7 +1,6 @@
 import socket
 
-BUFFER_SIZE = 1024
-HEADER_SIZE = 256  # header is a fixed 256 bytes, accommodating the file name and file size
+BUFFER_SIZE = 256
 
 
 def request_all_files(connection):
@@ -20,14 +19,18 @@ def request_all_files(connection):
 
 
 def request_file(connection, files_dict):
-    frame = connection.recv(BUFFER_SIZE)
+    frame = connection.recv(BUFFER_SIZE).decode('utf-8')
 
     if not frame:
         return False
 
-    file_name, data_id, data = frame.split(':')
-    print(f"Received file: {file_name}, data_id: {data_id}s")
+    print(f"👽Received frame👽: {frame}")
+    file_name, data_id, packet_size, data = frame.split(':', 3)
     data_id = int(data_id)
+    packet_size = int(packet_size)
+    if len(data) < packet_size:
+        data += connection.recv(packet_size - len(data)).decode('utf-8')
+    print(f"Received file: {file_name}, data_id: {data_id}")
 
     if file_name not in files_dict:
         files_dict[file_name] = {data_id: data}

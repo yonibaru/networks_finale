@@ -3,23 +3,25 @@ import threading
 import random
 import os
 
-BUFFER_SIZE = 4096
-HEADER_SIZE = 256  # header is a fixed 256 bytes, accommodating the file name and file size
+BUFFER_SIZE = 256
 
 
-def inject_file_data(filepath, data, id):
+def inject_file_data(filepath, data, id, packet_size):
     # Inject the file name and id into the data
-    return f"{filepath}:{id}:{data}"
+    if not data:
+        return None
+    return f"{filepath}:{id}:{packet_size}:{data}".encode('utf-8')
 
 
 def send_file(filepath, client_socket):
     with open(filepath, 'rb') as f:
         # Multiple threads cannot simultaneously run this code, allowing for some synchornization.
-        packet_size = random.randint(1000, 1800)
+        packet_size = random.randint(1000, 2000)
         counter = 1
         while True:
-            original_data = f.read(packet_size)
-            injected_data = inject_file_data(filepath, original_data, counter)
+            original_data = f.read(packet_size).decode('utf-8')
+            injected_data = inject_file_data(
+                filepath, original_data, counter, packet_size)
             if not injected_data:
                 break
             client_socket.sendall(injected_data)
@@ -71,5 +73,5 @@ if __name__ == "__main__":
     host = 'localhost'
     port = 9994
     # Assume these are the files available in the server directory
-    files = ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt"]
+    files = ["file1.txt", "file2.txt", "file3.txt"]
     start_server(host, port, files)
