@@ -7,7 +7,7 @@ BUFFER_SIZE = 256
 
 
 def inject_file_data(filepath, data, id, packet_size):
-    # Inject the file name and id into the data
+    # Inject the file path, data id, packet size, and data into the data
     if not data:
         return None
     return f"{filepath}:{id}:{packet_size}:{data}".encode('utf-8')
@@ -20,8 +20,10 @@ def send_file(filepath, client_socket):
         counter = 1
         while True:
             original_data = f.read(packet_size).decode('utf-8')
-            print(
-                f"Sending {filepath}, data_id: {counter}, packet_size: {packet_size}")
+            if len(original_data) < packet_size:
+                if not original_data:
+                    break
+                packet_size = len(original_data)
             injected_data = inject_file_data(
                 filepath, original_data, counter, packet_size)
             if not injected_data:

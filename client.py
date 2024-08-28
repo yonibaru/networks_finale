@@ -15,7 +15,7 @@ def request_all_files(connection):
         for file_name in files_dict:
             with open("new_" + file_name, 'wb') as f:
                 for data_id in sorted(files_dict[file_name]):
-                    f.write(files_dict[file_name][data_id])
+                    f.write(files_dict[file_name][data_id].encode('utf-8'))
 
 
 def request_file(connection, files_dict):
@@ -27,12 +27,8 @@ def request_file(connection, files_dict):
     file_name, data_id, packet_size, data = frame.split(':', 3)
     data_id = int(data_id)
     packet_size = int(packet_size)
-    print(
-        f"🍕🍕🍕Received file: {file_name}, data_id: {data_id}, packet_size: {packet_size}")
     if len(data) < packet_size:
         data += connection.recv(packet_size - len(data)).decode('utf-8')
-    print(f"👽Received frame👽: {frame}")
-
     if file_name not in files_dict:
         files_dict[file_name] = {data_id: data}
     else:
