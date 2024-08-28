@@ -22,6 +22,9 @@ The server will send the file to the client. The server will read the file and s
 
 
 def send_file(filepath, client_socket):
+    total_bytes_sent = 0
+    packet_count = 0
+
     with open(filepath, 'rb') as f:
         packet_size = random.randint(1000, 2000)  # Random packet size
         counter = 1  # Data ID - to keep track of the order of the data
@@ -43,7 +46,10 @@ def send_file(filepath, client_socket):
 
             # Send the injected data to the client
             client_socket.sendall(injected_data)
+            total_bytes_sent += len(injected_data)
+            packet_count += 1
             counter += 1
+
     print(f"Finished sending {filepath}")
 
 
