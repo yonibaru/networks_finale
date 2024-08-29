@@ -1,9 +1,11 @@
 import socket
 import threading
 import random
+import os
 
 MAX_CLIENTS = 10
 
+thread_lock = threading.Lock()
 '''
 Creates an appropriate header that would be sent along with the packet data to the client.
 '''
@@ -12,7 +14,8 @@ def inject_file_data(filepath, data, id, packet_size):
     # Conceptually, this is equivilant to creating a header.
     if not data:
         return None
-    return f"{filepath}:{id}:{packet_size}:{data}".encode('utf-8')
+    injected_data = f"{filepath}:{id}:{packet_size}:{data}"
+    return injected_data
 
 
 '''
@@ -26,8 +29,7 @@ def send_file(filepath, client_socket):
         packet_size = random.randint(1000, 2000)  # Random packet size
         counter = 1  # Data ID - to keep track of the order of the data
         while True:
-            original_data = f.read(packet_size).decode(
-                'utf-8')  # Read data from file
+            original_data = f.read(packet_size).decode('utf-8')  # Read data from file
 
             # If the data is less than the packet size, adjust the packet size.
             if len(original_data) < packet_size:
@@ -36,11 +38,11 @@ def send_file(filepath, client_socket):
                 packet_size = len(original_data)
 
             # Inject the file data into the original data
-            injected_data = inject_file_data(
-                filepath, original_data, counter, packet_size)
-            if not injected_data:
+            injected_data = inject_file_data(filepath, original_data, counter, packet_size).encode('utf-8')
+            if not injected_data or len(injected_data) == 0:
                 break
-
+            # print("### SENT FRAME: ###")
+            # print(f"{injected_data}")
             # Send the injected data to the client
             client_socket.sendall(injected_data)
             total_bytes_sent += len(injected_data)
@@ -57,12 +59,13 @@ def serve_client(client_socket, files_to_send):
     print(f"Handling client {client_socket.getpeername()}")
 
     streams = []  # List of threads (streams) for each file to send
-    for i in range(len(files_to_send)):
+    for i in range(len(files_to_send)):            
         file = files_to_send[i]
-
+        if not os.path.isfile(file):
+            print(f"{file} is missing from the server directory and will not be sent to the client. Continuing...")
+            continue
         # Create a thread (stream) for each file to send
-        streams.append(threading.Thread(
-            target=send_file, args=(file, client_socket)))
+        streams.append(threading.Thread(target=send_file, args=(file, client_socket)))
 
     # Run all threads (streams) to send the files
     for stream in streams:
@@ -102,7 +105,7 @@ def start_server(host, port, files_to_send):
 
 if __name__ == "__main__":
     host = 'localhost'
-    port = 3000
+    port = 3006
     # The files that would be sent to each client
-    files = ["file1.txt", "file2.txt", "file3.txt"]
+    files = ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt", "file7.txt", "file8.txt", "file9.txt", "file10.txt"]
     start_server(host, port, files)
