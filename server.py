@@ -2,25 +2,22 @@ import socket
 import threading
 import random
 
-BUFFER_SIZE = 256
+MAX_CLIENTS = 10
 
 '''
-Add the file data to the data to be sent to the client. The file path, data id, packet size, and data are added to the data.
+Creates an appropriate header that would be sent along with the packet data to the client.
 '''
-
-
 def inject_file_data(filepath, data, id, packet_size):
     # Inject the file path, data id, packet size, and data into the data
+    # Conceptually, this is equivilant to creating a header.
     if not data:
         return None
     return f"{filepath}:{id}:{packet_size}:{data}".encode('utf-8')
 
 
 '''
-The server will send the file to the client. The server will read the file and send the file data to the client.
+This function sends a file to a client socket
 '''
-
-
 def send_file(filepath, client_socket):
     total_bytes_sent = 0
     packet_count = 0
@@ -54,10 +51,8 @@ def send_file(filepath, client_socket):
 
 
 '''
-The server will handle the client.
+Each client is served by the means of sending the entire directory of txt files that exist in the server.
 '''
-
-
 def serve_client(client_socket, files_to_send):
     print(f"Handling client {client_socket.getpeername()}")
 
@@ -82,15 +77,13 @@ def serve_client(client_socket, files_to_send):
 
 
 '''
-The server will start and listen for incoming connections from clients.
+Initalizing the server and listening for clients.
 '''
-
-
 def start_server(host, port, files_to_send):
     server_socket = socket.socket(
         socket.AF_INET, socket.SOCK_STREAM)  # Create a server socket
     server_socket.bind((host, port))
-    server_socket.listen(10)  # Up to 10 clients can connect
+    server_socket.listen(MAX_CLIENTS)  # Up to 10 clients can connect
 
     print(f"Server listening on {host}:{port}")
 
@@ -110,6 +103,6 @@ def start_server(host, port, files_to_send):
 if __name__ == "__main__":
     host = 'localhost'
     port = 3000
-    # Assume these are the files available in the server directory
+    # The files that would be sent to each client
     files = ["file1.txt", "file2.txt", "file3.txt"]
     start_server(host, port, files)
