@@ -5,7 +5,6 @@ import os
 
 MAX_CLIENTS = 10
 
-thread_lock = threading.Lock()
 '''
 Creates an appropriate header that would be sent along with the packet data to the client.
 '''
@@ -105,7 +104,7 @@ def start_server(host, port, files_to_send):
 
 if __name__ == "__main__":
     host = 'localhost'
-    port = 3006
-    # The files that would be sent to each client
-    files = ["file1.txt", "file2.txt", "file3.txt", "file4.txt", "file5.txt", "file6.txt", "file7.txt", "file8.txt", "file9.txt", "file10.txt"]
+    port = 3000
+    # The files that would be sent to each client (if any are missing from the server directory they would be skipped)
+    files = ["file1.txt","file2.txt","file3.txt","file4.txt","file5.txt","file6.txt","file7.txt","file8.txt","file9.txt","file10.txt"]
     start_server(host, port, files)

@@ -42,8 +42,8 @@ def request_all_files(connection):
         print("--- File Transfer Complete ---")
         print(f"Bytes Sent: {bytes_sent}")
         print(f"Packets Sent: {packets_sent}")
-        # print(f"Average bytes per second: {bytes_sent / total_packets_sent_time}")
-        # print(f"Average packets per second: {packets_sent / total_packets_sent_time}")
+        print(f"Average bytes per second: {bytes_sent / total_packets_sent_time}")
+        print(f"Average packets per second: {packets_sent / total_packets_sent_time}")
         print("------------------------------")
         break
 
@@ -65,8 +65,8 @@ def process_packet(connection, files_dict):
     if not frame:
         return False
     
-    print("### RECEIVED INITIAL FRAME: ###")
-    print(f"{frame}")
+    # print("### RECEIVED INITIAL FRAME: ###")
+    # print(f"{frame}")
     # Split the data into file name, data id, packet size, and data
     file_name, data_id, packet_size, data = frame.split(':', 3)
 
@@ -77,8 +77,8 @@ def process_packet(connection, files_dict):
     if len(data) < packet_size:
         data += connection.recv(packet_size - len(data)).decode('utf-8')
     
-    print("### RECEIVED COMPLETED FRAME: ###")
-    print(f"{file_name}:{data_id}:{packet_size}:{data}")
+    # print("### RECEIVED COMPLETED FRAME: ###")
+    # print(f"{file_name}:{data_id}:{packet_size}:{data}")
     
 
     end_time = time.time()
@@ -112,6 +112,6 @@ def connect_to_server(host, port):
 # For simplicity's sake, arguments are provided here
 if __name__ == "__main__":
     host = 'localhost'
-    port = 3006
+    port = 3000
     connection = connect_to_server(host, port)
     request_all_files(connection)
