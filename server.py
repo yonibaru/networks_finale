@@ -25,7 +25,9 @@ def inject_file_data(filepath, data, id, packet_size):
     # Conceptually, this is equivilant to creating a header.
     if not data:
         return None
-    # .zfill simply adds 0's to the start of a string until it reaches the desired length
+    
+    # .zfill pads a string with 0's until the desired length is reached
+    # .ljust pads a string with whitespaces (" ") until the desired length is reached
     formatted_filename = filepath[:FILENAME_LENGTH].ljust(FILENAME_LENGTH)
     formatted_packet_id = str(id).zfill(PACKET_ID_LENGTH)[:PACKET_ID_LENGTH]
     formatted_packet_size = str(packet_size).zfill(PACKET_SIZE_LENGTH)[:PACKET_SIZE_LENGTH]
