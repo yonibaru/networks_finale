@@ -76,18 +76,9 @@ def process_packet(connection, files_dict):
     file_name = header[:FILENAME_LENGTH].strip()
     data_id = int(header[FILENAME_LENGTH:FILENAME_LENGTH+PACKET_ID_LENGTH])
     packet_size = int(header[FILENAME_LENGTH+PACKET_ID_LENGTH:FILENAME_LENGTH+PACKET_ID_LENGTH+PACKET_SIZE_LENGTH])
-    # print(f"file_name={file_name} size={len(file_name)}")
-    # print(f"data_id={data_id} size={len(str(data_id))}")
-    # print(f"packet_size={packet_size} size={len(str(packet_size))}")
-
+  
     data = connection.recv(packet_size).decode('utf-8')
     
-    # print(f"size of data={len(data)} ### data={data}")
-    
-    # print("### RECEIVED COMPLETED FRAME: ###")
-    # print(f"{file_name}:{data_id}:{packet_size}:{data}")
-    
-
     end_time = time.time()
     duration = end_time - start_time
     packets_sent += 1

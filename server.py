@@ -34,10 +34,7 @@ def inject_file_data(filepath, data, id, packet_size):
     
     # Form a 43-byte header
     formatted_header = (f"{formatted_filename}{formatted_packet_id}{formatted_packet_size}")
-    # print(f"formatted_header={formatted_header} size={len(formatted_header)}")
-    # print(f"formatted_filename={formatted_filename} size={len(formatted_filename)}")
-    # print(f"formatted_packet_id={formatted_packet_id} size={len(formatted_packet_id)}")
-    # print(f"formatted_packet_size={formatted_packet_size} size={len(formatted_packet_size)}")
+
     
     if len(formatted_header) != HEADER_SIZE:
         raise ValueError(f"Header size is not of the required {HEADER_SIZE} bytes. Current size: {len(formatted_header)}")
@@ -66,9 +63,7 @@ def send_file(filepath, client_socket):
             formatted_data = inject_file_data(filepath, original_data, counter, packet_size).encode('utf-8')
             if not formatted_data or len(formatted_data) == 0:
                 break
-            # print("### SENT FRAME: ###")
-            # print(f"{injected_data}")
-            # Send the injected data to the client
+            # Send the formatted data to the client
             client_socket.sendall(formatted_data)
             total_bytes_sent += len(formatted_data)
             packet_count += 1
