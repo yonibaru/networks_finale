@@ -39,7 +39,6 @@ def inject_file_data(filepath, data, id, packet_size):
     
     if len(formatted_header) != HEADER_SIZE:
         raise ValueError(f"Header size is not of the required {HEADER_SIZE} bytes. Current size: {len(formatted_header)}")
-    
     return f"{formatted_header}{data}"
 
 '''
